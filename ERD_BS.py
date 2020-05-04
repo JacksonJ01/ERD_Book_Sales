@@ -118,18 +118,40 @@ CREATE TABLE IF NOT EXISTS
 """
 
 input("press enter".upper())
+connecting = database("myDatabase")
 
 print("\nWhy hello there."
       "\nI'm going to keep this short and quick:"
-      "\nToday I have a program for you that utilizes a cool thing called sqlite."
+      "\nToday I have a program for you that utilizes a cool thing called sqlite3."
       "\nThere are menu's you can use to explore the program as you wish."
       "\nYou will only need to use the numbers on your keyboard."
-      "\nWhen entering information, be weary of any spaces"
-      "\nAlright have fun!")
+      "\nWhen entering information, be weary of any spaces")
 
-input("\npress enter to connect the database\n".upper())
+clear = input("\nWould you like to clear the information in the database? (Y or N)"
+              "\n>>>").title()
+if clear == "Y":
+    clear = input("\nAre you sure? (Y or N)"
+                  "\n>>>").title()
+    if clear == "Y":
+        drop_table = """
+        DROP TABLE IF EXISTS
+         customer"""
+        create_table(connecting, drop_table)
+        drop_table = """
+        DROP TABLE IF EXISTS
+         book"""
+        create_table(connecting, drop_table)
+        drop_table = """
+        DROP TABLE IF EXISTS
+         ordering"""
+        create_table(connecting, drop_table)
+        drop_table = """
+        DROP TABLE IF EXISTS
+         order_line_item"""
+        create_table(connecting, drop_table)
 
-connecting = database("myDatabase")
+input("\npress enter to connect the tables to the database\n".upper())
+
 create_table(connecting, person_table)  # Adds the person table to the database
 create_table(connecting, book_table)  # Adds the books table to the database
 create_table(connecting, order_table)  # Adds the ordering table to the database
@@ -743,34 +765,38 @@ while menu != "END":
                         print("Something went wrong :(")
                         break
 
-                    order_number = f"""
-                    SELECT
-                      order_number
-                    FROM
-                      ordering
-                    WHERE
-                      order_date = '{date_time}' AND customer_id = {customer_id}
-                    """
-                    order_num = read_table(connecting, order_number)
-                    order_num = int(f'{order_num[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
-                    order_number_placeholder = order_num
+                    if multiple_orders == 0:
+                        order_number = f"""
+                        SELECT
+                          order_number
+                        FROM
+                          ordering
+                        WHERE
+                          order_date = '{date_time}' AND customer_id = {customer_id}
+                        """
+                        order_num = read_table(connecting, order_number)
+                        order_num = int(f'{order_num[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                        order_number_placeholder = order_num
+
+                    else:
+                        order_num = order_number_placeholder
 
                     add_order_line_item = f"""
-                    INSET INTO
+                    INSERT INTO
                       order_line_item (order_number, book_id, quantity)
                     VALUES
                       ('{order_num}', '{book_id}', '{quantity}')
                     """
                     create_table(connecting, add_order_line_item)
 
-                again = input("\nWould you like to place another order? (Y or N)"
-                              "\n>>>")
-                if again == "Y":
-                    "\nAlright"
-                    multiple_orders += 1
-                else:
-                    print("\nI'm taking you back to the menu")
-                    break
+                    again = input("\nWould you like to place another order? (Y or N)"
+                                  "\n>>>").title()
+                    if again == "Y":
+                        "\nAlright"
+                        multiple_orders += 1
+                    else:
+                        print("\nI'm taking you back to the menu")
+                        break
 
             elif menu == 2:
                 order = 'SELECT * FROM ordering'
