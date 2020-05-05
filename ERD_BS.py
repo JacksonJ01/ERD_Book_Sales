@@ -720,7 +720,13 @@ while menu != "END":
                           f' | ISBN: {book[3]} | EDITION: {book[4]} | PRICE: {book[5]} | PUBLISHER: {book[6]}')
 
             print("\nI'm taking you back you the menu.")
-
+    
+    # This section is new in the Main Menu
+    # After adding books and customers into the menu, users will be able to order books, and remove orders
+    # To remove orders, the Customer ID and Order Number must match the order they wish to remove
+    # Initially this program was 'done', but i felt like it would be cheating to not have the this remove part
+    # I could have said "Make sure you are satisfied with your order because there is no going back"
+    # But the other menu's have a delete portion, so I added it in
     elif choice == 3:
         menu = "ONWARD"
         while menu != "END":
@@ -732,6 +738,7 @@ while menu != "END":
                          "\n4. Delete an Order"
                          "\n5. Leave this menu"
                          "\n>>>")
+            # Checks if the user entered a valid number
             while menu != "END":
                 try:
                     menu = int(menu)
@@ -743,7 +750,10 @@ while menu != "END":
                     menu = input("\nPlease enter 1, 2, 3, 4, or 5"
                                  "\n>>>")
 
+            # The user can order a book here. The iN variable checks if the customer is in the database.
+            # I could ask what the user's ID is, but they could access someone else's account#
             if menu == 1:
+                # This is also used later on for the delete portion
                 iN = input("\nAre you a customer in this database? (Y or N)"
                            "\n>>>").title()
                 if iN == "Y":
@@ -766,9 +776,14 @@ while menu != "END":
                 WHERE
                   first_name = '{first_name}' AND last_name = '{last_name}'
                 """
+                # This is where the check happens. It looks for the Customer ID associated with the Name
+                # However this check can fail, so I have it in a try statement
                 try:
                     customer_id = read_table(connecting, customer_id)
                     customer_id = int(f'{customer_id[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                    # Whenever I try to capture the subscript value by itself it never works, so these .replace() methods have to stay
+
+                # If the user is not in the database an IndexError will occur so I have this section
                 except IndexError:
                     print("\nIt seems you are not in the database."
                           "\nPlease enter ADD yourself from the Customer Menu"
@@ -776,13 +791,19 @@ while menu != "END":
                           "\nIf the latter occurs you can always MODIFY your Name in our system")
                     break
 
-                order_number_placeholder = 0
-                order_num = 0
-                multiple_orders = 0
-                order_total_placeholder = 0
-                date_placeholder = 0
+                # Okay, for this part I needed variables that could be held on to even after the loop repeats
+                # If the user wants add another order then:
+                order_number_placeholder = 0  # This variable will hold onto the order_number given to that order from the first round
+                                              # I need this variable to be place in the Order Line Item table so the orders can sync up
+                order_num = 0  # This variable will help with the if statement I have in this section.
+                               # If it was the first pass the variable needed to not run the second time
+                multiple_orders = 0  # With this variable the user can choose to enter another order
+                order_total_placeholder = 0  # The only thing that will changed the Ordering table with the second pass, was the order_total
+                                             # I needed this variable outside of the loop so I could add the new price value to the old price value
                 while menu != "STOP":
+                    # If the user wants place another order, the loop above keeps it going until the user is done
                     while menu != "END":
+                        # Displays all of the books in the database
                         print("\nHere is the list of all books in the database:")
                         book = "SELECT * FROM book"
                         all_books = read_table(connecting, book)
@@ -799,6 +820,11 @@ while menu != "END":
                             except ValueError:
                                 book_id = input("\nWhat is the Book ID of the book??"
                                                 "\n>>>")
+                        # The user can order any book they want, but if the user orders 1 book with a Book ID of 1,
+                        # then they decide they want to get another one within the same order, it will make both of the PRIMARY KEY's in the
+                        # Order Line Item table a duplicate and that will cause the program to add value to the order total, but leave out the book
+                        # With 5 more our of rearranging I could probably make it work, allowing the user to enter more by checking the program,
+                        # but not unless I have to
                         checking = 0
                         if multiple_orders > 0:
                             print("\nAllow me to do a quick check...")
@@ -806,7 +832,7 @@ while menu != "END":
                             SELECT book_id
                             FROM order_line_item
                             WHERE book_id = {book_id} AND order_number = {order_number_placeholder}
-                            """
+                            """  # The WHERE clause checks the table for these specific constraints. If it finds it, the program will go back to the menu
                             check = read_table(connecting, checking)
                             for checks in check:
                                 checks = int(f"{checks}".replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
@@ -830,17 +856,22 @@ while menu != "END":
                         WHERE
                           book_id = {book_id}
                         """
+                        # Since the Book ID is a number dependent on the amount of books added by the user, I can't add a constraint on the input statement above
+                        # That means the user can try to cheese me and enter a non existent Book ID
+                        # This try statement checks if the Book ID number the user enter has a price associated with it in the Book table
                         try:
                             price = read_table(connecting, price)
                             price = int(f'{price[0]}'.replace(',', '').replace('(', '').replace(')', '').replace('$', '').replace(".", "").replace("'", ''))
-
+                        # If not, this breaks the inner loop, which shows them the books they can order, in case they forgot
                         except IndexError:
                             print("\nThat is not a Book ID in this database"
                                   "\n____")
                             break
 
+                        # The user can buy more than one of the same book
                         quantity = input("\nHow many do you want to purchase?"
                                          "\n>>>")
+                        # Checks if a number was entered
                         while quantity != int:
                             try:
                                 quantity = int(quantity)
@@ -849,10 +880,13 @@ while menu != "END":
                                 quantity = input("\nHow many would you like to purchase?"
                                                  "\n>>>")
 
-                        order_total = 0
+                        order_total = 0  # Without this, order_total variable in the add_order variable didn't work
                         if multiple_orders > 0:
+                            # This just takes the previous order total and adds it to the new total price
                             order_total = f"${str(order_total_placeholder + ((quantity * price) / 100))}"
                             order_total_placeholder += (quantity * price) / 100
+                            # The order_total show would as a float (for example: $12.0)
+                            # The if statements allow it to show as $12.00
                             try:
                                 if order_total[-2] == ".":
                                     order_total = order_total + '0'
@@ -860,6 +894,8 @@ while menu != "END":
                                     order_total = order_total + ".00"
                             finally:
                                 print("Your total is", order_total)
+                            # This allows me to add me add the new total to the database where it belongs
+                            # I use the order_number_placeholder here because that that is the PRIMARY KEY for this table
                             update_order_total = f"""
                             UPDATE
                               ordering
@@ -870,6 +906,8 @@ while menu != "END":
                             """
                             create_table(connecting, update_order_total)
                         else:
+                            # I could have saved the order_total_ placeholder as order_total
+                            # But I would then have to strip the string components from it
                             order_total = f"${str((quantity * price) / 100)}"
                             order_total_placeholder = (quantity * price) / 100
                             try:
@@ -880,13 +918,14 @@ while menu != "END":
                             finally:
                                 print("Your total is", order_total)
 
+                        # This gets the date and time for the order_date variable.
+                        # This only needs to be entered once because it is only needed for the first pass
+                        # After that the next orders Update the order total
                         date_time = 0
                         if multiple_orders == 0:
                             date_time = datetime.now().strftime('%x at %H:%M')
-                            date_placeholder = date_time
-                        else:
-                            date_time = date_placeholder
 
+                        # The code will enter this if statement on the first pass to actually get the order into the database
                         if multiple_orders == 0:
                             add_order = f"""
                             INSERT INTO
@@ -900,6 +939,11 @@ while menu != "END":
                                 print("Something went wrong :(")
                                 break
 
+                        # This code will also run on the first pass.
+                        # Once the order table has been added to the database, this SELECT clause will grab the order_number
+                        # The reason I didn't grab the Book ID in this is because:
+                        # 1. The UNIQUE KEY will be duplicated
+                        # 2. The user will enter a different Book ID the next time around
                         if multiple_orders == 0:
                             order_number = f"""
                             SELECT
@@ -912,10 +956,12 @@ while menu != "END":
                             order_num = read_table(connecting, order_number)
                             order_num = int(f'{order_num[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
                             order_number_placeholder = order_num
-
+                        # This sets the order_number as as the placeholder value will allows it to keep the same order number as the first pass
+                        # The Book ID and Quantity have new values, so those get entered in
                         else:
                             order_num = order_number_placeholder
 
+                        # This adds the new data into the table, keeping the order_number
                         add_order_line_item = f"""
                         INSERT INTO
                           order_line_item (order_number, book_id, quantity)
@@ -924,17 +970,21 @@ while menu != "END":
                         """
                         create_table(connecting, add_order_line_item)
 
-                        again = input("\nWould you like to place another order? (Y or N)"
+                        # If the user chooses, they can add another order
+                        again = input("\nWould you like to place another book to this order? (Y or N)"
                                       "\n>>>").title()
 
+                        # The multiple_orders variable get set to a value other than 0 which allows them to add another book
                         if again == "Y":
                             "\nAlright"
                             multiple_orders += 1
+                        # This takes the user back to the menu
                         else:
                             print("Okay")
                             menu = "STOP"
                             break
 
+            # Prints the orders made in the Ordering table
             elif menu == 2:
                 order = 'SELECT * FROM ordering'
                 orders = read_table(connecting, order)
@@ -942,13 +992,17 @@ while menu != "END":
                     print(f'\nORDER NUMBER: {order[0]} | DATE OF ORDER: {order[1]}'
                           f' | ORDER TOTAL: {order[2]} | CUSTOMER ID: {order[3]}')
 
+            # Prints the data in the Order Line Item table
             elif menu == 3:
                 oli = 'SELECT * FROM order_line_item ORDER BY order_number'
                 oli_s = read_table(connecting, oli)
                 for oli in oli_s:
                     print(f'\nORDER NUMBER: {oli[0]} | BOOK ID: {oli[1]} | QUANTITY: {oli[2]}')
 
+            # If the user chooses this then can delete an order they made
+            # I didn't want any user to delete orders, so I made it more 'secure', but it's all just a pain in the rear
             elif menu == 4:
+                # Checks if the user is in the table, like above
                 iN = input("\nAre you a customer in this database? (Y or N)"
                            "\n>>>").title()
                 if iN == "Y":
@@ -980,6 +1034,8 @@ while menu != "END":
                           "\nIf you are sure you are, check for unwanted spacing, or accidental spacing in the database"
                           "\nIf the latter occurs you can always MODIFY your Name in our system")
                     break
+
+                # This asks the user what the order number was, which is the PRIMARY KEY
                 delete = input("\nWhat the the Order Number, of an order placed by you, that you wish to delete?"
                                "\n>>>")
                 while delete != int:
@@ -990,6 +1046,9 @@ while menu != "END":
                         delete = input("\nWhat the the Order Number, of an order placed by you, that you wish to delete?"
                                        "\n>>>")
 
+                # The order table has have 2 unique columns, so this table is kind of redundant, since it checks the table using the data you just gave it
+                # Without this I had the try statements, but they still failed.
+                # I did this section as a joke, but it works so It'll stay
                 print("Let me do a quick check...")
                 checking = 0
                 if checking == 0:
@@ -1011,6 +1070,7 @@ while menu != "END":
                         print("\nLooks like you don't have that Order Number paired with ID")
                         break
 
+                # If the statement above sets checking to 0 again, then it means the order the user wishes to delete was made by them
                 if checking == 0:
                     delete_order = f"""
                     DELETE FROM
@@ -1038,10 +1098,12 @@ while menu != "END":
                 else:
                     print("Something is wrong..")
 
+            # This takes the user to the main menu
             elif menu == 5:
-                print('Alright')
+                print('Alright, off to the main menu')
                 break
 
+    # Finally, this let's the user exit the program
     elif choice == 4:
         print("Bye, hope you enjoyed")  # because this was work XD
         menu = "END"
