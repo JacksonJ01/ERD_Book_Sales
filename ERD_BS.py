@@ -782,6 +782,29 @@ while menu != "END":
                             except ValueError:
                                 book_id = input("\nWhat is the Book ID of the book??"
                                                 "\n>>>")
+                        checking = 0
+                        if multiple_orders > 0:
+                            print("\nAllow me to do a quick check:")
+                            checking = f"""
+                            SELECT book_id
+                            FROM order_line_item
+                            WHERE book_id = {book_id} AND order_number = {order_number_placeholder}
+                            """
+                            check = read_table(connecting, checking)
+                            for checks in check:
+                                checks = int(f"{checks}".replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                                print(book_id, checks)
+                                if book_id == checks:
+                                    print("You can't order that book again in this order."
+                                          "\nYou will have to place new order and get the book again there.")
+                                    checking = 1
+                                    break
+                            if checking == 1:
+                                menu = "STOP"
+                                break
+
+                            print("Alright, good to go")
+
                         price = f"""
                         SELECT
                           price
@@ -811,8 +834,10 @@ while menu != "END":
 
                         order_total = 0
                         if multiple_orders > 0:
+                            print(order_total_placeholder, quantity, price)
                             order_total = f"${str(order_total_placeholder + ((quantity * price) / 100))}"
                             order_total_placeholder += (quantity * price) / 100
+                            print(order_total_placeholder)
                             try:
                                 if order_total[-2] == ".":
                                     order_total = order_total + '0'
@@ -824,7 +849,7 @@ while menu != "END":
                             UPDATE
                               ordering
                             SET
-                              order_total = {order_total}
+                              order_total = '{order_total}'
                             WHERE
                               order_number == {order_number_placeholder}
                             """
@@ -832,6 +857,7 @@ while menu != "END":
                         else:
                             order_total = f"${str((quantity * price) / 100)}"
                             order_total_placeholder = (quantity * price) / 100
+                            print(order_total_placeholder)
                             try:
                                 if order_total[-2] == ".":
                                     order_total = order_total + '0'
