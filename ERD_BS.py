@@ -991,28 +991,52 @@ while menu != "END":
                                        "\n>>>")
 
                 print("Let me do a quick check...")
-                delete_order = f"""
-                DELETE FROM
-                  ordering
-                WHERE
-                  order_number = {delete} AND customer_id = {customer_id}
-                """
-                if create_table(connecting, delete_order) is True:
-                    create_table(connecting, delete_order)
-                    delete_order_line_item = f"""
-                    DELETE FROM
-                      order_line_item
+                checking = 0
+                if checking == 0:
+                    checking = f"""
+                    SELECT
+                      order_number, customer_id
+                    FROM 
+                      ordering
                     WHERE
-                      order_number = {delete}
+                      order_number = {delete} AND customer_id = {customer_id}
                     """
-                    if create_table(connecting, delete_order_line_item) is True:
-                        create_table(connecting, delete_order_line_item)
-                        print("Everything was successful!")
-                    else:
-                        print("Something went wrong :(")
+                    check = read_table(connecting, checking)
+                    try:
+                        check0 = int(f"{check}".replace(',', '').replace('(', '').replace(')', '').replace("'", '').replace(f"{delete}", '').replace(']', '').replace('[', ''))
+                        check1 = int(f"{check}".replace(',', '').replace('(', '').replace(')', '').replace("'", '').replace(f'{customer_id}', '').replace(']', '').replace('[', ''))
+                        if check0 == customer_id and check1 == delete:
+                            checking = 0
+                    except ValueError:
+                        print("\nLooks like you don't have that Order Number paired with ID")
+                        break
+
+                if checking == 0:
+                    delete_order = f"""
+                    DELETE FROM
+                      ordering
+                    WHERE
+                      order_number = {delete} AND customer_id = {customer_id}
+                    """
+                    print(customer_id, delete)
+                    try:
+                        create_table(connecting, delete_order)
+                        delete_order_line_item = f"""
+                        DELETE FROM
+                          order_line_item
+                        WHERE
+                          order_number = {delete}
+                        """
+                        try:
+                            create_table(connecting, delete_order_line_item)
+                            print("Everything was successful!")
+                        except ValueError:
+                            print("Something went wrong :(")
+                    except ValueError:
+                        print("\nHmm. It doesn't look like an order with that Order Number and Customer ID was placed"
+                              "\nPrint the Order table to check and try again")
                 else:
-                    print("\nHmm. It doesn't look like an order with that Order Number and Customer ID was placed"
-                          "\nPrint the Order table to check and try again")
+                    print("Something is wrong..")
 
             elif menu == 5:
                 print('Alright')
