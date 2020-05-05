@@ -327,6 +327,8 @@ while menu != "END":
             # This section allows the user to modify information in the person table excluding the ID. That could be bad
             elif choice == 2:
                 menu = "ONWARD"
+                partition()
+                input("\npress enter".upper())
                 category = input("\nAlright, which category of the customer would you like to modify? (The Customer ID will remain unchanged)" +
                                  "\n*type the number next to the desired choice*".upper() +
                                  "\n1. First Name"
@@ -553,6 +555,7 @@ while menu != "END":
 
             elif choice == 2:
                 partition()
+                input("\npress enter".upper())
                 category = input("\nAlright, which category of the book would you like to modify? (The Book ID and ISBN will remain unchanged)" +
                                  "\n*type the number next to the desired choice*".upper() +
                                  "\n1. Title"
@@ -731,6 +734,7 @@ while menu != "END":
         menu = "ONWARD"
         while menu != "END":
             partition()
+            input("\npress enter".upper())
             menu = input("\nWhat do you want to do?"
                          "\n1. Order book(s)"
                          "\n2. Print Orders"
@@ -803,6 +807,7 @@ while menu != "END":
                 while menu != "STOP":
                     # If the user wants place another order, the loop above keeps it going until the user is done
                     while menu != "END":
+                        partition()
                         # Displays all of the books in the database
                         print("\nHere is the list of all books in the database:")
                         book = "SELECT * FROM book"
