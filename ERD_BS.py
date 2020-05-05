@@ -1072,7 +1072,7 @@ while menu != "END":
                         if check0 == customer_id and check1 == delete:
                             checking = 0
                     except ValueError:
-                        print("\nLooks like you don't have that Order Number paired with ID")
+                        print("\nLooks like there isn't an Order Number paired with that ID")
                         break
 
                 # If the statement above sets checking to 0 again, then it means the order the user wishes to delete was made by them
@@ -1083,7 +1083,6 @@ while menu != "END":
                     WHERE
                       order_number = {delete} AND customer_id = {customer_id}
                     """
-                    print(customer_id, delete)
                     try:
                         create_table(connecting, delete_order)
                         delete_order_line_item = f"""
