@@ -127,28 +127,83 @@ print("\nWhy hello there."
       "\nYou will only need to use the numbers on your keyboard."
       "\nWhen entering information, be weary of any spaces")
 
-clear = input("\nWould you like to clear the information in the database? (Y or N)"
+clear = input("\nWould you like to clear all or some of the information in the database? (Y or N)"
               "\n>>>").title()
 if clear == "Y":
-    clear = input("\nAre you sure? (Y or N)"
-                  "\n>>>").title()
-    if clear == "Y":
-        drop_table = """
-        DROP TABLE IF EXISTS
-         customer"""
-        create_table(connecting, drop_table)
-        drop_table = """
-        DROP TABLE IF EXISTS
-         book"""
-        create_table(connecting, drop_table)
-        drop_table = """
-        DROP TABLE IF EXISTS
-         ordering"""
-        create_table(connecting, drop_table)
-        drop_table = """
-        DROP TABLE IF EXISTS
-         order_line_item"""
-        create_table(connecting, drop_table)
+    while clear != "N":
+        partition()
+        clear = input("\n*PICK THE NUMBER NEXT TO YOUR DESIRED CHOICE*"
+                      "\n1. CLEAR Customer Table"
+                      "\n2. CLEAR Book Table"
+                      "\n3. CLEAR Ordering Table"
+                      "\n4. CLEAR Order Line Item Table"
+                      "\n5. CLEAR ALL"
+                      "\n6. Leave this menu"
+                      "\n>>>")
+        while clear != "#If the user wants to delete some of the tables they can":
+            try:
+                clear = int(clear)
+                if 7 > clear > 0:
+                    break
+                else:
+                    int("#Force Fail")
+            except ValueError:
+                clear = input("Enter a number 1-6")
+
+        if clear == 1:
+            drop_table = """
+            DROP TABLE IF EXISTS
+              customer"""
+            create_table(connecting, drop_table)
+
+        elif clear == 2:
+            drop_table = """
+            DROP TABLE IF EXISTS
+              book"""
+            create_table(connecting, drop_table)
+
+        elif clear == 3:
+            drop_table = """
+            DROP TABLE IF EXISTS
+              ordering"""
+            create_table(connecting, drop_table)
+
+        elif clear == 4:
+            drop_table = """
+            DROP TABLE IF EXISTS
+              order_line_item"""
+            create_table(connecting, drop_table)
+
+        elif clear == 5:
+            clear = input("\nAre you sure? (Y or N)"
+                          "\n>>>").title()
+
+            if clear == "Y":
+                drop_table = """
+                DROP TABLE IF EXISTS
+                 customer"""
+                create_table(connecting, drop_table)
+
+                drop_table = """
+                DROP TABLE IF EXISTS
+                 book"""
+                create_table(connecting, drop_table)
+
+                drop_table = """
+                DROP TABLE IF EXISTS
+                 ordering"""
+                create_table(connecting, drop_table)
+
+                drop_table = """
+                DROP TABLE IF EXISTS
+                 order_line_item"""
+                create_table(connecting, drop_table)
+
+            else:
+                clear = "No"
+        else:
+            clear = "N"
+
 
 input("\npress enter to connect the tables to the database\n".upper())
 
@@ -381,7 +436,8 @@ while menu != "END":
                 people = read_table(connecting, every_one)
 
                 for peeps in people:
-                    print('\n', peeps)
+                    print(f'\nCUSTOMER ID: {peeps[0]} | FIRST NAME: {peeps[1]} | LAST NAME: {peeps[2]} | ADDRESS: {peeps[3]}'
+                          f' | ZIP CODE: {peeps[4]} | CITY: {peeps[5]} | STATE: {peeps[6]}')
 
             print("\nAlright, I'm taking you back you the menu")
 
@@ -644,7 +700,8 @@ while menu != "END":
                 books = read_table(connecting, all_books)
 
                 for book in books:
-                    print('\n', book)
+                    print(f'\nBOOK ID: {book[0]} | TITLE: {book[1]} | AUTHOR: {book[2]}'
+                          f' | ISBN: {book[3]} | EDITION: {book[4]} | PRICE: {book[5]} | PUBLISHER: {book[6]}')
 
             print("\nI'm taking you back you the menu.")
 
@@ -705,110 +762,151 @@ while menu != "END":
                 order_number_placeholder = 0
                 order_num = 0
                 multiple_orders = 0
-                while menu != "END":
-                    print("\nHere is the list of all books in the database:")
-                    book = "SELECT * FROM book"
-                    all_books = read_table(connecting, book)
-                    for books in all_books:
-                        print('\n', books)
+                order_total_placeholder = 0
+                date_placeholder = 0
+                while menu != "STOP":
+                    while menu != "END":
+                        print("\nHere is the list of all books in the database:")
+                        book = "SELECT * FROM book"
+                        all_books = read_table(connecting, book)
+                        for books in all_books:
+                            print(f'\nBOOK ID: {books[0]} | TITLE: {books[1]} | AUTHOR: {books[2]}'
+                                  f' | ISBN: {books[3]} | EDITION: {books[4]} | PRICE: {books[5]} | PUBLISHER: {books[6]}')
 
-                    book_id = input("\nWhat is the Book ID of the book you want to buy?"
-                                    "\n>>>")
-                    while book_id != int:
-                        try:
-                            book_id = int(book_id)
-                            break
-                        except ValueError:
-                            book_id = input("\nWhat is the Book ID of the book??"
-                                            "\n>>>")
-                    price = f"""
-                    SELECT
-                      price
-                    FROM
-                      book
-                    WHERE
-                      book_id = {book_id}
-                    """
-                    price = read_table(connecting, price)
-                    price = int(f'{price[0]}'.replace(',', '').replace('(', '').replace(')', '').replace('$', '').replace(".", "").replace("'", ''))
-
-                    quantity = input("\nHow many do you want to purchase?"
-                                     "\n>>>")
-                    while quantity != int:
-                        try:
-                            quantity = int(quantity)
-                            break
-                        except ValueError:
-                            quantity = input("\nHow many would you like to purchase?"
-                                             "\n>>>")
-
-                    order_total = f"${str((quantity * price) / 100)}"
-                    try:
-                        if order_total[-2] == ".":
-                            order_total = order_total + '0'
-                        if order_total[-3] != '.':
-                            order_total = order_total + ".00"
-                    finally:
-                        print("Your total is", order_total)
-
-                    date_time = datetime.now().strftime('%x at %H:%M')
-
-                    add_order = f"""
-                    INSERT INTO
-                      ordering (order_date, order_total, customer_id)
-                    VALUES
-                      ('{date_time}', '{order_total}', '{customer_id}')
-                    """
-                    try:
-                        create_table(connecting, add_order)
-                    except ValueError:
-                        print("Something went wrong :(")
-                        break
-
-                    if multiple_orders == 0:
-                        order_number = f"""
+                        book_id = input("\nWhat is the Book ID of the book you want to buy?"
+                                        "\n>>>")
+                        while book_id != int:
+                            try:
+                                book_id = int(book_id)
+                                break
+                            except ValueError:
+                                book_id = input("\nWhat is the Book ID of the book??"
+                                                "\n>>>")
+                        price = f"""
                         SELECT
-                          order_number
+                          price
                         FROM
-                          ordering
+                          book
                         WHERE
-                          order_date = '{date_time}' AND customer_id = {customer_id}
+                          book_id = {book_id}
                         """
-                        order_num = read_table(connecting, order_number)
-                        order_num = int(f'{order_num[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
-                        order_number_placeholder = order_num
+                        try:
+                            price = read_table(connecting, price)
+                            price = int(f'{price[0]}'.replace(',', '').replace('(', '').replace(')', '').replace('$', '').replace(".", "").replace("'", ''))
 
-                    else:
-                        order_num = order_number_placeholder
+                        except IndexError:
+                            print("\nThat is not a Book ID in this database"
+                                  "\n____")
+                            break
 
-                    add_order_line_item = f"""
-                    INSERT INTO
-                      order_line_item (order_number, book_id, quantity)
-                    VALUES
-                      ('{order_num}', '{book_id}', '{quantity}')
-                    """
-                    create_table(connecting, add_order_line_item)
+                        quantity = input("\nHow many do you want to purchase?"
+                                         "\n>>>")
+                        while quantity != int:
+                            try:
+                                quantity = int(quantity)
+                                break
+                            except ValueError:
+                                quantity = input("\nHow many would you like to purchase?"
+                                                 "\n>>>")
 
-                    again = input("\nWould you like to place another order? (Y or N)"
-                                  "\n>>>").title()
-                    if again == "Y":
-                        "\nAlright"
-                        multiple_orders += 1
-                    else:
-                        print("\nI'm taking you back to the menu")
-                        break
+                        order_total = 0
+                        if multiple_orders > 0:
+                            order_total = f"${str(order_total_placeholder + ((quantity * price) / 100))}"
+                            order_total_placeholder += (quantity * price) / 100
+                            try:
+                                if order_total[-2] == ".":
+                                    order_total = order_total + '0'
+                                if order_total[-3] != '.':
+                                    order_total = order_total + ".00"
+                            finally:
+                                print("Your total is", order_total)
+                            update_order_total = f"""
+                            UPDATE
+                              ordering
+                            SET
+                              order_total = {order_total}
+                            WHERE
+                              order_number == {order_number_placeholder}
+                            """
+                            create_table(connecting, update_order_total)
+                        else:
+                            order_total = f"${str((quantity * price) / 100)}"
+                            order_total_placeholder = (quantity * price) / 100
+                            try:
+                                if order_total[-2] == ".":
+                                    order_total = order_total + '0'
+                                if order_total[-3] != '.':
+                                    order_total = order_total + ".00"
+                            finally:
+                                print("Your total is", order_total)
+
+                        date_time = 0
+                        if multiple_orders == 0:
+                            date_time = datetime.now().strftime('%x at %H:%M')
+                            date_placeholder = date_time
+                        else:
+                            date_time = date_placeholder
+
+                        if multiple_orders == 0:
+                            add_order = f"""
+                            INSERT INTO
+                              ordering (order_date, order_total, customer_id)
+                            VALUES
+                              ('{date_time}', '{order_total}', '{customer_id}')
+                            """
+                            try:
+                                create_table(connecting, add_order)
+                            except ValueError:
+                                print("Something went wrong :(")
+                                break
+
+                        if multiple_orders == 0:
+                            order_number = f"""
+                            SELECT
+                              order_number
+                            FROM
+                              ordering
+                            WHERE
+                              order_date = '{date_time}' AND customer_id = {customer_id}
+                            """
+                            order_num = read_table(connecting, order_number)
+                            order_num = int(f'{order_num[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                            order_number_placeholder = order_num
+
+                        else:
+                            order_num = order_number_placeholder
+
+                        add_order_line_item = f"""
+                        INSERT INTO
+                          order_line_item (order_number, book_id, quantity)
+                        VALUES
+                          ('{order_num}', '{book_id}', '{quantity}')
+                        """
+                        create_table(connecting, add_order_line_item)
+
+                        again = input("\nWould you like to place another order? (Y or N)"
+                                      "\n>>>").title()
+
+                        if again == "Y":
+                            "\nAlright"
+                            multiple_orders += 1
+                        else:
+                            print("Okay")
+                            menu = "STOP"
+                            break
 
             elif menu == 2:
                 order = 'SELECT * FROM ordering'
                 orders = read_table(connecting, order)
                 for order in orders:
-                    print('\n', order)
+                    print(f'\nORDER NUMBER: {order[0]} | DATE OF ORDER: {order[1]}'
+                          f' | ORDER TOTAL: {order[2]} | CUSTOMER ID: {order[3]}')
 
             elif menu == 3:
                 oli = 'SELECT * FROM order_line_item ORDER BY order_number'
                 oli_s = read_table(connecting, oli)
                 for oli in oli_s:
-                    print('\n', oli)
+                    print(f'\nORDER NUMBER: {oli[0]} | BOOK ID: {oli[1]} | QUANTITY: {oli[2]}')
 
             elif menu == 4:
                 print('Alright')
