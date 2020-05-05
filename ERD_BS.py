@@ -127,9 +127,13 @@ print("\nWhy hello there."
       "\nYou will only need to use the numbers on your keyboard."
       "\nWhen entering information, be weary of any spaces")
 
+# If the user wishes to the tables they can
+# In testing I wanted a fresh start so I would manually clear, but then I added this in to make it easier for and users
+# In a practical use, there would probably have to be 'key' or pin number, for those with the authority, to clear these tables
 clear = input("\nWould you like to clear all or some of the information in the database? (Y or N)"
               "\n>>>").title()
 if clear == "Y":
+    # This is the menu presented to the user that allows them to clear tables of their choice
     while clear != "N":
         partition()
         clear = input("\n*PICK THE NUMBER NEXT TO YOUR DESIRED CHOICE*"
@@ -140,6 +144,7 @@ if clear == "Y":
                       "\n5. CLEAR ALL"
                       "\n6. Leave this menu"
                       "\n>>>")
+        # Checks if the user entered a valid number in the menu
         while clear != "#If the user wants to delete some of the tables they can":
             try:
                 clear = int(clear)
@@ -150,30 +155,35 @@ if clear == "Y":
             except ValueError:
                 clear = input("Enter a number 1-6")
 
+        # Clears the Customer table
         if clear == 1:
             drop_table = """
             DROP TABLE IF EXISTS
               customer"""
             create_table(connecting, drop_table)
 
+        # Clears the Book table
         elif clear == 2:
             drop_table = """
             DROP TABLE IF EXISTS
               book"""
             create_table(connecting, drop_table)
 
+        # Clears the Ordering table
         elif clear == 3:
             drop_table = """
             DROP TABLE IF EXISTS
               ordering"""
             create_table(connecting, drop_table)
 
+        # Clears the Order Line Item table
         elif clear == 4:
             drop_table = """
             DROP TABLE IF EXISTS
               order_line_item"""
             create_table(connecting, drop_table)
 
+        # Clears all of the tables
         elif clear == 5:
             clear = input("\nAre you sure? (Y or N)"
                           "\n>>>").title()
@@ -214,6 +224,12 @@ create_table(connecting, order_line_item)  # Adds the order_line_item tables to 
 
 print("\nNice! Have fun")
 
+# This is the menu that runs the whole program
+# It is somewhat sophisticated, including try statements to keep the users from crashing the program.
+# However this program is 'long' so it may have failures in places I never thought #PeopleBreakThings
+# It includes a Main Menu, three sub menu's, and 2 more sub menu's from there
+# The reason the Order and Order Line Item table don't have a sub menu for modification is because the user can delete that order and place another one
+# I feel like there would be too many errors otherwise#
 menu = "ONWARD"
 while menu != "END":
     partition()
@@ -713,17 +729,18 @@ while menu != "END":
                          "\n1. Order book(s)"
                          "\n2. Print Orders"
                          "\n3. Print Order Line Items"
-                         "\n4. Leave this menu"
+                         "\n4. Delete an Order"
+                         "\n5. Leave this menu"
                          "\n>>>")
             while menu != "END":
                 try:
                     menu = int(menu)
-                    if 5 > menu > 0:
+                    if 6 > menu > 0:
                         break
                     else:
                         int("#Fails on purpose")
                 except ValueError:
-                    menu = input("\nPlease enter 1, 2, 3, or 4"
+                    menu = input("\nPlease enter 1, 2, 3, 4, or 5"
                                  "\n>>>")
 
             if menu == 1:
@@ -784,7 +801,7 @@ while menu != "END":
                                                 "\n>>>")
                         checking = 0
                         if multiple_orders > 0:
-                            print("\nAllow me to do a quick check:")
+                            print("\nAllow me to do a quick check...")
                             checking = f"""
                             SELECT book_id
                             FROM order_line_item
@@ -793,10 +810,10 @@ while menu != "END":
                             check = read_table(connecting, checking)
                             for checks in check:
                                 checks = int(f"{checks}".replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
-                                print(book_id, checks)
                                 if book_id == checks:
-                                    print("You can't order that book again in this order."
-                                          "\nYou will have to place new order and get the book again there.")
+                                    print("\nYou can't order this book again in this order."
+                                          "\nI will take you to the menu to place new order"
+                                          "\nYou can get this book again there.")
                                     checking = 1
                                     break
                             if checking == 1:
@@ -834,10 +851,8 @@ while menu != "END":
 
                         order_total = 0
                         if multiple_orders > 0:
-                            print(order_total_placeholder, quantity, price)
                             order_total = f"${str(order_total_placeholder + ((quantity * price) / 100))}"
                             order_total_placeholder += (quantity * price) / 100
-                            print(order_total_placeholder)
                             try:
                                 if order_total[-2] == ".":
                                     order_total = order_total + '0'
@@ -857,7 +872,6 @@ while menu != "END":
                         else:
                             order_total = f"${str((quantity * price) / 100)}"
                             order_total_placeholder = (quantity * price) / 100
-                            print(order_total_placeholder)
                             try:
                                 if order_total[-2] == ".":
                                     order_total = order_total + '0'
@@ -935,6 +949,72 @@ while menu != "END":
                     print(f'\nORDER NUMBER: {oli[0]} | BOOK ID: {oli[1]} | QUANTITY: {oli[2]}')
 
             elif menu == 4:
+                iN = input("\nAre you a customer in this database? (Y or N)"
+                           "\n>>>").title()
+                if iN == "Y":
+                    print("Let us proceed then")
+                else:
+                    print("\nI will take you the previous menu."
+                          "\nFrom there go to the Customer Menu"
+                          "\nYou can be entered there")
+                    break
+
+                first_name = input("\nWhat is your First Name?"
+                                   "\n>>>").title()
+                last_name = input("\nWhat is your Last Name?"
+                                  "\n>>>").title()
+                customer_id = f"""
+                SELECT 
+                  customer_id
+                FROM
+                  customer           
+                WHERE
+                  first_name = '{first_name}' AND last_name = '{last_name}'
+                """
+                try:
+                    customer_id = read_table(connecting, customer_id)
+                    customer_id = int(f'{customer_id[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                except IndexError:
+                    print("\nIt seems you are not in the database."
+                          "\nPlease enter ADD yourself from the Customer Menu"
+                          "\nIf you are sure you are, check for unwanted spacing, or accidental spacing in the database"
+                          "\nIf the latter occurs you can always MODIFY your Name in our system")
+                    break
+                delete = input("\nWhat the the Order Number, of an order placed by you, that you wish to delete?"
+                               "\n>>>")
+                while delete != int:
+                    try:
+                        delete = int(delete)
+                        break
+                    except ValueError:
+                        delete = input("\nWhat the the Order Number, of an order placed by you, that you wish to delete?"
+                                       "\n>>>")
+
+                print("Let me do a quick check...")
+                delete_order = f"""
+                DELETE FROM
+                  ordering
+                WHERE
+                  order_number = {delete} AND customer_id = {customer_id}
+                """
+                if create_table(connecting, delete_order) is True:
+                    create_table(connecting, delete_order)
+                    delete_order_line_item = f"""
+                    DELETE FROM
+                      order_line_item
+                    WHERE
+                      order_number = {delete}
+                    """
+                    if create_table(connecting, delete_order_line_item) is True:
+                        create_table(connecting, delete_order_line_item)
+                        print("Everything was successful!")
+                    else:
+                        print("Something went wrong :(")
+                else:
+                    print("\nHmm. It doesn't look like an order with that Order Number and Customer ID was placed"
+                          "\nPrint the Order table to check and try again")
+
+            elif menu == 5:
                 print('Alright')
                 break
 
