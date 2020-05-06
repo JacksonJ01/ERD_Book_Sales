@@ -976,7 +976,7 @@ while menu != "END":
                         create_table(connecting, add_order_line_item)
 
                         # If the user chooses, they can add another order
-                        again = input("\nWould you like to place another book to this order? (Y or N)"
+                        again = input("\nWould you like to add another book to this order? (Y or N)"
                                       "\n>>>").title()
 
                         # The multiple_orders variable get set to a value other than 0 which allows them to add another book
