@@ -431,7 +431,7 @@ while menu != "END":
                 # I wanted to check if the user actually entered an integer so i used another try statement
                 while value != "Random Words":
                     try:
-                        int(value)  # but i didn't want to make it an integer because i would have to typecast the variable
+                        value = int(value)  # but i didn't want to make it an integer because i would have to typecast the variable
                         break
                     except ValueError:
                         value = input("\nEnter the ID of the Customer you wish to delete"
@@ -443,11 +443,10 @@ while menu != "END":
                 DELETE FROM 
                   customer
                 WHERE
-                  customer_id = '{value}' AND last_name = '{value1}'
+                  customer_id = {value} AND last_name = '{value1}'
                 """
 
                 create_table(connecting, delete_person)
-                print("\nMenu time")
 
             # This simple prints the list of people in the database
             elif choice == 4:
@@ -740,7 +739,7 @@ while menu != "END":
                          "\n1. Order book(s)"
                          "\n2. Print Orders"
                          "\n3. Print Order Line Items"
-                         "\n4. Delete an Order"
+                         "\n4. Delete an Entire Order"
                          "\n5. Leave this menu"
                          "\n>>>")
             # Checks if the user entered a valid number
@@ -1036,6 +1035,15 @@ while menu != "END":
                                    "\n>>>").title()
                 last_name = input("\nWhat is your Last Name?"
                                   "\n>>>").title()
+                cust_id = input("\nWhat is your Customer ID number?"
+                                "\n>>>")
+                while cust_id != int:
+                    try:
+                        cust_id = int(cust_id)
+                        break
+                    except ValueError:
+                        cust_id = input("Customer ID number please"
+                                        "\n>>>")
                 customer_id = f"""
                 SELECT 
                   customer_id
@@ -1044,14 +1052,24 @@ while menu != "END":
                 WHERE
                   first_name = '{first_name}' AND last_name = '{last_name}'
                 """
+                # This is where the check happens. It looks for the Customer ID associated with the Name
+                # However this check can fail, so I have it in a try statement
                 try:
                     customer_id = read_table(connecting, customer_id)
-                    customer_id = int(f'{customer_id[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
-                except IndexError:
+                    for cust in customer_id:
+                        cust = int(f'{cust}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                        if cust == cust_id:  # I realized there could be two users with the same name, so i had to fix a couple of things
+                            customer_id = cust_id
+                            break
+                        int("#Force Fail")
+                    # Whenever I try to capture the subscript value by itself it never works, so these .replace() methods have to stay
+                # If the user is not in the database an IndexError will occur so I have this section
+                except IndexError and ValueError:
                     print("\nIt seems you are not in the database."
                           "\nPlease enter ADD yourself from the Customer Menu"
-                          "\nIf you are sure you are, check for unwanted spacing, or accidental spacing in the database"
-                          "\nIf the latter occurs you can always MODIFY your Name in our system")
+                          "\nIf you are sure you are, check for spelling errors and unwanted or accidental spacing in the database"
+                          "\nIf the latter occurs you can always MODIFY your Name in our system"
+                          "\nCheck if you have entered right Customer ID for yourself as well")
                     break
 
                 # This asks the user what the order number was, which is the PRIMARY KEY
@@ -1062,7 +1080,7 @@ while menu != "END":
                         delete = int(delete)
                         break
                     except ValueError:
-                        delete = input("\nWhat the the Order Number, of an order placed by you, that you wish to delete?"
+                        delete = input("\nWhat is the Order Number, of an order placed by you, that you wish to delete?"
                                        "\n>>>")
 
                 # The order table has have 2 unique columns, so this table is kind of redundant, since it checks the table using the data you just gave it
