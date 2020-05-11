@@ -153,7 +153,8 @@ if clear == "Y":
                 else:
                     int("#Force Fail")
             except ValueError:
-                clear = input("Enter a number 1-6")
+                clear = input("\nEnter a number 1-6"
+                              "\n>>>")
 
         # Clears the Customer table
         if clear == 1:
@@ -772,6 +773,15 @@ while menu != "END":
                                    "\n>>>").title()
                 last_name = input("\nWhat is your Last Name?"
                                   "\n>>>").title()
+                cust_id = input("\nWhat is your Customer ID number?"
+                                "\n>>>")
+                while cust_id != int:
+                    try:
+                        cust_id = int(cust_id)
+                        break
+                    except ValueError:
+                        cust_id = input("Customer ID number please"
+                                        "\n>>>")
                 customer_id = f"""
                 SELECT 
                   customer_id
@@ -784,11 +794,15 @@ while menu != "END":
                 # However this check can fail, so I have it in a try statement
                 try:
                     customer_id = read_table(connecting, customer_id)
-                    customer_id = int(f'{customer_id[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                    for cust in customer_id:
+                        cust = int(f'{cust}'.replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
+                        if cust == cust_id:  # I realized there could be two users with the same name, so i had to fix a couple of things
+                            customer_id = cust_id
+                            break
+                        int("#Force Fail")
                     # Whenever I try to capture the subscript value by itself it never works, so these .replace() methods have to stay
-
                 # If the user is not in the database an IndexError will occur so I have this section
-                except IndexError:
+                except IndexError and ValueError:
                     print("\nIt seems you are not in the database."
                           "\nPlease enter ADD yourself from the Customer Menu"
                           "\nIf you are sure you are, check for unwanted spacing, or accidental spacing in the database"
