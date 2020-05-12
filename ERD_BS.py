@@ -209,6 +209,7 @@ if clear == "Y":
                 DROP TABLE IF EXISTS
                  order_line_item"""
                 create_table(connecting, drop_table)
+                break
 
             else:
                 clear = "No"
@@ -725,11 +726,8 @@ while menu != "END":
             print("\nI'm taking you back you the menu.")
     
     # This section is new in the Main Menu
-    # After adding books and customers into the menu, users will be able to order books, and remove orders
+    # After adding books and customers into the menu, users will be able to order books and remove orders
     # To remove orders, the Customer ID and Order Number must match the order they wish to remove
-    # Initially this program was 'done', but i felt like it would be cheating to not have the this remove part
-    # I could have said "Make sure you are satisfied with your order because there is no going back"
-    # But the other menu's have a delete portion, so I added it in
     elif choice == 3:
         menu = "ONWARD"
         while menu != "END":
@@ -798,6 +796,7 @@ while menu != "END":
                         if cust == cust_id:  # I realized there could be two users with the same name, so i had to fix a couple of things
                             customer_id = cust_id
                             break
+                    if customer_id != cust_id:
                         int("#Force Fail")
                     # Whenever I try to capture the subscript value by itself it never works, so these .replace() methods have to stay
                 # If the user is not in the database an IndexError will occur so I have this section
@@ -830,6 +829,7 @@ while menu != "END":
                                   f' | ISBN: {books[3]} | EDITION: {books[4]} | PRICE: {books[5]} | PUBLISHER: {books[6]}')
 
                         book_id = input("\nWhat is the Book ID of the book you want to buy?"
+                                        "*MAKE SURE YOU ARE SATISFIED WITH YOUR CHOICE*"
                                         "\n>>>")
                         while book_id != int:
                             try:
@@ -856,7 +856,7 @@ while menu != "END":
                                 checks = int(f"{checks}".replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
                                 if book_id == checks:
                                     print("\nYou can't order this book again in this order."
-                                          "\nI will take you to the menu to place new order"
+                                          "\nI will take you to the menu so you can modify this order"
                                           "\nYou can get this book again there.")
                                     checking = 1
                                     break
@@ -1017,8 +1017,6 @@ while menu != "END":
                 for oli in oli_s:
                     print(f'\nORDER NUMBER: {oli[0]} | BOOK ID: {oli[1]} | QUANTITY: {oli[2]}')
 
-            # If the user chooses this then can delete an order they made
-            # I didn't want any user to delete orders, so I made it more 'secure', but it's all just a pain in the rear
             elif menu == 4:
                 # Checks if the user is in the table, like above
                 iN = input("\nAre you a customer in this database? (Y or N)"
@@ -1061,15 +1059,15 @@ while menu != "END":
                         if cust == cust_id:  # I realized there could be two users with the same name, so i had to fix a couple of things
                             customer_id = cust_id
                             break
+                    if customer_id != cust_id:
                         int("#Force Fail")
                     # Whenever I try to capture the subscript value by itself it never works, so these .replace() methods have to stay
                 # If the user is not in the database an IndexError will occur so I have this section
                 except IndexError and ValueError:
                     print("\nIt seems you are not in the database."
                           "\nPlease enter ADD yourself from the Customer Menu"
-                          "\nIf you are sure you are, check for spelling errors and unwanted or accidental spacing in the database"
-                          "\nIf the latter occurs you can always MODIFY your Name in our system"
-                          "\nCheck if you have entered right Customer ID for yourself as well")
+                          "\nIf you are sure you are, check for unwanted spacing, or accidental spacing in the database"
+                          "\nIf the latter occurs you can always MODIFY your Name in our system")
                     break
 
                 # This asks the user what the order number was, which is the PRIMARY KEY
@@ -1135,7 +1133,7 @@ while menu != "END":
                     print("Something is wrong..")
 
             # This takes the user to the main menu
-            elif menu == 5:
+            elif menu == 6:
                 print('Alright, off to the main menu')
                 break
 
