@@ -125,7 +125,8 @@ print("\nWhy hello there."
       "\nToday I have a program for you that utilizes a cool thing called sqlite3."
       "\nThere are menu's you can use to explore the program as you wish."
       "\nYou will only need to use the numbers on your keyboard."
-      "\nWhen entering information, be weary of any spaces")
+      "\nWhen entering information, be weary of any spaces."
+      "\nThis program is Secure and Case sensitive")
 
 # If the user wishes to the tables they can
 # In testing I wanted a fresh start so I would manually clear, but then I added this in to make it easier for and users
@@ -439,7 +440,7 @@ while menu != "END":
                                       "\n>>>")
                 # I also asked for the customers last name, sort of as a fail safe
                 value1 = input("\nAlright, what is the Last Name of that customer?"
-                               "\n>>>\n").title()
+                               "\n>>>").title()
                 delete_person = f"""
                 DELETE FROM 
                   customer
@@ -656,17 +657,36 @@ while menu != "END":
                             value1 = input("\nEnter the Price of the book. (For example: $12.75)"
                                            "\n>>>")
 
-                value2 = input("\nAlright, what is the ISBN of that book?"
+                value2 = input("\nAlright, what is the Book ID of that book?"
                                "\n>>>")
                 # Still the same ISBN checks as before
                 while value2 != "Next day":
                     try:
-                        checking = value2.replace("-", "")
-                        int(checking)
+                        value2 = int(value2)
                         break
                     except ValueError:
-                        value2 = input("\nPlease enter a valid ISBN"
+                        value2 = input("\nPlease enter the Book ID number"
                                        "\n>>>")
+                # Checks to see if this is paired
+                check = f"""
+                SELECT
+                  book_id
+                FROM
+                  book
+                WHERE  
+                  {category} = '{value}'
+                """
+                checking = read_table(connecting, check)
+                try:
+                    checking = int(f'{checking[0]}'.replace(',', '').replace('(', '').replace(')', '').replace("'", '').replace('[', '').replace("]", ''))
+                    if checking == value2:
+                        print("Alright, making the changes now...")
+                    else:
+                        checking = 'checking'
+                        check = checking[72]  # Causes an index error to fail this section
+                except IndexError:
+                    print("This doesn't match any current records")
+                    break
 
                 # This variable holds the string to modify book information
                 update_book = f"""
@@ -675,7 +695,7 @@ while menu != "END":
                 SET
                   {category} = '{value1}'
                 WHERE
-                  {category} = '{value}' AND isbn = '{value2}'
+                  {category} = '{value}' AND book_id = {value2}
                 """
                 create_table(connecting, update_book)
                 print("\nOkay, now back to the menu.")
@@ -829,7 +849,7 @@ while menu != "END":
                                   f' | ISBN: {books[3]} | EDITION: {books[4]} | PRICE: {books[5]} | PUBLISHER: {books[6]}')
 
                         book_id = input("\nWhat is the Book ID of the book you want to buy?"
-                                        "*MAKE SURE YOU ARE SATISFIED WITH YOUR CHOICE*"
+                                        "\n*MAKE SURE YOU ARE SATISFIED WITH YOUR CHOICE*"
                                         "\n>>>")
                         while book_id != int:
                             try:
@@ -856,8 +876,8 @@ while menu != "END":
                                 checks = int(f"{checks}".replace(',', '').replace('(', '').replace(')', '').replace("'", ''))
                                 if book_id == checks:
                                     print("\nYou can't order this book again in this order."
-                                          "\nI will take you to the menu so you can modify this order"
-                                          "\nYou can get this book again there.")
+                                          "\nAre you trying to break me?"
+                                          "\nYou will have to create a new order to purchase more")
                                     checking = 1
                                     break
                             if checking == 1:
@@ -1133,7 +1153,7 @@ while menu != "END":
                     print("Something is wrong..")
 
             # This takes the user to the main menu
-            elif menu == 6:
+            elif menu == 5:
                 print('Alright, off to the main menu')
                 break
 
