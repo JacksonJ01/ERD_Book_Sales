@@ -1093,7 +1093,7 @@ while menu != "END":
                 # This asks the user what the order number was, which is the PRIMARY KEY
                 delete = input("\nWhat the the Order Number, of an order placed by you, that you wish to delete?"
                                "\n>>>")
-                while delete != int:
+                while delete == int:
                     try:
                         delete = int(delete)
                         break
@@ -1101,56 +1101,31 @@ while menu != "END":
                         delete = input("\nWhat is the Order Number, of an order placed by you, that you wish to delete?"
                                        "\n>>>")
 
-                # The order table has have 2 unique columns, so this table is kind of redundant, since it checks the table using the data you just gave it
-                # Without this I had the try statements, but they still failed.
-                # I did this section as a joke, but it works so It'll stay
-                print("Let me do a quick check...")
-                checking = 0
-                if checking == 0:
-                    checking = f"""
-                    SELECT
-                      order_number, customer_id
-                    FROM 
-                      ordering
-                    WHERE
-                      order_number = {delete} AND customer_id = {customer_id}
-                    """
-                    check = read_table(connecting, checking)
-                    try:
-                        check0 = int(f"{check}".replace(',', '').replace('(', '').replace(')', '').replace("'", '').replace(f"{delete}", '').replace(']', '').replace('[', ''))
-                        check1 = int(f"{check}".replace(',', '').replace('(', '').replace(')', '').replace("'", '').replace(f'{customer_id}', '').replace(']', '').replace('[', ''))
-                        if check0 == customer_id and check1 == delete:
-                            checking = 0
-                    except ValueError:
-                        print("\nLooks like there isn't an Order Number paired with that ID")
-                        break
-
                 # If the statement above sets checking to 0 again, then it means the order the user wishes to delete was made by them
-                if checking == 0:
-                    delete_order = f"""
+
+                delete_order = f"""
+                DELETE FROM
+                  ordering
+                WHERE
+                  order_number = {delete} AND customer_id = {customer_id}
+                """
+                try:
+                    create_table(connecting, delete_order)
+                    delete_order_line_item = f"""
                     DELETE FROM
-                      ordering
+                      order_line_item
                     WHERE
-                      order_number = {delete} AND customer_id = {customer_id}
+                      order_number = {delete}
                     """
                     try:
-                        create_table(connecting, delete_order)
-                        delete_order_line_item = f"""
-                        DELETE FROM
-                          order_line_item
-                        WHERE
-                          order_number = {delete}
-                        """
-                        try:
-                            create_table(connecting, delete_order_line_item)
-                            print("Everything was successful!")
-                        except ValueError:
-                            print("Something went wrong :(")
+                        create_table(connecting, delete_order_line_item)
+                        print("\nPrint tables to see if the order was indeed deleted."
+                              "\nIf they aren't gone, double check your inputs.")
                     except ValueError:
-                        print("\nHmm. It doesn't look like an order with that Order Number and Customer ID was placed"
-                              "\nPrint the Order table to check and try again")
-                else:
-                    print("Something is wrong..")
+                        print("Something went wrong :(")
+                except ValueError:
+                    print("\nHmm. It doesn't look like an order with that Order Number and Customer ID was placed"
+                          "\nPrint the Order table to check and try again")
 
             # This takes the user to the main menu
             elif menu == 5:
